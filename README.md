@@ -1,78 +1,194 @@
-# Custom Game Engine Development
+# CMD CUDA 3D Engine
 
-Welcome to the Custom Game Engine project! This document outlines the core components, development tools, and additional libraries used in building a game engine optimized for NVIDIA GPUs.
+A 3D ASCII-art rendering engine that uses CUDA for GPU-accelerated computation and renders textured 3D cubes directly to the Windows Command Prompt using ANSI escape sequences.
 
-## Core Components
+![Engine Demo](images/preview.gif) <!-- Add this later if you create a demo gif -->
 
-### Graphics API
+## Overview
 
-- **Vulkan**: A modern, low-level graphics API that provides fine-grained control over GPU resources and is well-suited for high-performance applications.
-- **OpenGL**: A more established API that is easier to learn and use, but with less control over the hardware compared to Vulkan.
-- **DirectX**: If you're targeting Windows platforms, DirectX is a powerful option with extensive support for graphics and compute tasks.
+This project is a **3D ASCII-art renderer** that combines:
+- **CUDA GPU computing** for high-performance 3D transformations and rasterization
+- **Windows Console output** with ANSI color codes for real-time 3D visualization
+- **BMP texture mapping** for applying textures to 3D cubes
+- **Real-time input handling** for interactive camera movement
 
-### Compute API
+The engine renders 3D textured cubes as ASCII characters in the terminal, with each character colored using the 256-color ANSI palette based on the underlying texture.
 
-- **CUDA**: Use CUDA for general-purpose parallel computing tasks that can benefit from the massive parallelism of NVIDIA GPUs.
-- **OpenCL**: An alternative to CUDA that is cross-platform and can run on different types of hardware.
+## Features
 
-### Shader Languages
+- 🎮 **Real-time 3D Rendering**: GPU-accelerated 3D transformations and rasterization
+- 🖼️ **Texture Mapping**: BMP image loading and texture application to 3D objects
+- 🎨 **ASCII Art Output**: Converts 3D scenes to colored ASCII characters in the terminal
+- ⌨️ **Interactive Controls**: WASD movement, arrow keys for camera control
+- 🚀 **CUDA Acceleration**: Parallel processing for vertex transformations and pixel operations
+- 🪟 **Windows Console**: Optimized for Windows Command Prompt with ANSI color support
 
-- **GLSL (OpenGL Shading Language)**: Used with OpenGL for writing vertex, fragment, and compute shaders.
-- **HLSL (High-Level Shading Language)**: Used with DirectX for shader programming.
-- **SPIR-V**: An intermediate language for Vulkan shaders, which can be generated from GLSL or HLSL.
+## Technical Architecture
 
-### Physics Engine
+### Core Components
 
-- **Bullet Physics**: An open-source physics engine that can be integrated into your game engine for realistic physics simulations.
-- **PhysX**: NVIDIA's physics engine that can leverage GPU acceleration for physics computations.
+1. **CUDA Kernels** (`gpu_cuda/kernel.cu`):
+   - Vertex transformation and rotation
+   - Texture sampling and rasterization
+   - Parallel pixel buffer operations
 
-### Audio Engine
+2. **BMP Reader** (`tools/bmpread.cpp`):
+   - Custom BMP file parser
+   - Texture data extraction for GPU upload
 
-- **OpenAL**: A cross-platform audio API for rendering 3D sound.
-- **FMOD**: A popular audio engine used in many commercial games, offering advanced audio features.
+3. **Console Output** (`cmd_output/output.cpp`):
+   - ANSI escape sequence generation
+   - Optimized console buffer rendering
+   - Real-time input handling
 
-### Networking
+4. **Main Engine** (`game.cpp`):
+   - Application entry point and main loop
 
-- **Enet**: A simple and robust networking library for real-time applications.
-- **RakNet**: A networking engine designed for games, providing features like object replication and remote procedure calls.
+### Rendering Pipeline
 
-### Scripting Language
+```
+BMP Textures → CUDA Memory → 3D Transformations → Rasterization → ASCII Conversion → Console Output
+```
 
-- **Lua**: A lightweight scripting language that can be embedded into your engine for game logic and customization.
-- **Python**: Another option for scripting, though it may require more integration work.
+## Prerequisites
 
-## Development Tools
+- **Windows 10/11** (required for ANSI console support)
+- **NVIDIA GPU** with CUDA support (Compute Capability 3.5+)
+- **CUDA Toolkit 12.8** or compatible version
+- **Visual Studio 2022** with C++ build tools
+- **Windows Console** with ANSI escape sequence support enabled
 
-### Integrated Development Environment (IDE)
+## Installation & Build
 
-- **Visual Studio**: A powerful IDE for C++ development, especially on Windows.
-- **CLion**: A cross-platform C++ IDE with good support for CMake projects.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/NikitaKonkov/CMD_CUDA_3D_ENGINE.git
+   cd CMD_CUDA_3D_ENGINE
+   ```
 
-### Version Control
+2. **Run the build script**:
+   ```batch
+   install.bat
+   ```
+   
+   This script will:
+   - Set up the Visual Studio build environment
+   - Compile CUDA kernels with `nvcc`
+   - Link C++ source files with CUDA runtime
+   - Generate the executable `run.exe`
 
-- **Git**: Essential for managing your codebase and collaborating with others.
+3. **Run the engine**:
+   ```batch
+   run.exe
+   ```
 
-### Build System
+## Controls
 
-- **CMake**: A cross-platform build system that can generate build files for various compilers and IDEs.
+| Key | Action |
+|-----|--------|
+| `W` | Move camera forward |
+| `S` | Move camera backward |
+| `A` | Move camera left |
+| `D` | Move camera right |
+| `Q` | Increase movement speed |
+| `E` | Decrease movement speed |
+| `↑` | Move object away |
+| `↓` | Move object closer |
+| `←` | Move object left |
+| `→` | Move object right |
 
-### Profiling and Debugging
+## Configuration
 
-- **NVIDIA Nsight**: A suite of tools for debugging and profiling GPU applications.
-- **Valgrind**: A tool for memory debugging and profiling on Linux.
+### Display Settings
 
-## Additional Libraries
+Edit `header.h` to modify rendering resolution:
 
-### Math Libraries
+```cpp
+const int WIDTH  = 238;  // Console width in characters
+const int HEIGHT = 143;  // Console height in characters
+```
 
-- **GLM (OpenGL Mathematics)**: A header-only library for mathematics, designed for graphics applications.
-- **Eigen**: A C++ template library for linear algebra.
+### Texture Settings
 
-### Image and Texture Loading
+Textures are loaded from the `images/` directory. The engine supports:
+- **128x128 BMP files** for optimal performance
+- **256-color palette** mapping to ANSI codes
+- **Multiple texture formats** (see `images/` folder)
 
-- **stb_image**: A simple library for loading images in various formats.
-- **DevIL**: A more comprehensive image library for loading and manipulating images.
+## Project Structure
 
-### UI Framework
+```
+CMD_CUDA_3D_ENGINE/
+├── 📁 gpu_cuda/          # CUDA kernels and GPU code
+│   ├── kernel.cu         # Main rendering kernels
+│   ├── shapes.cu         # 3D shape definitions
+│   └── test.cu           # CUDA testing utilities
+├── 📁 cmd_output/        # Console output and input handling
+│   └── output.cpp        # ANSI rendering and controls
+├── 📁 tools/             # Utility functions
+│   └── bmpread.cpp       # BMP file reader
+├── 📁 images/            # Texture assets
+│   ├── *.bmp             # Various texture files
+│   └── 128xNUM/          # Numbered textures
+├── header.h              # Main header with declarations
+├── game.cpp              # Application entry point
+├── install.bat           # Build script
+└── README.md             # This file
+```
 
-- **Dear ImGui**: A bloat-free graphical user interface library for C++.
+## Performance
+
+- **Resolution**: 238×143 characters (~34,000 pixels)
+- **Frame Rate**: Depends on GPU performance and texture complexity
+- **Memory Usage**: Optimized CUDA constant memory for textures
+- **Console Output**: Efficient ANSI sequence batching
+
+## Troubleshooting
+
+### Build Issues
+
+1. **CUDA not found**: Ensure CUDA Toolkit is installed and `CUDA_PATH` is correct in `install.bat`
+2. **Visual Studio errors**: Verify VS 2022 Community is installed with C++ build tools
+3. **Linking errors**: Check that `cudart.lib` is available in the CUDA lib directory
+
+### Runtime Issues
+
+1. **No output**: Enable ANSI support in Windows Console or use Windows Terminal
+2. **Poor performance**: Ensure you have a CUDA-compatible NVIDIA GPU
+3. **Texture errors**: Verify BMP files are in the correct format and path
+
+## Development
+
+### Adding New Textures
+
+1. Convert images to 128×128 BMP format
+2. Place in `images/` directory  
+3. Update texture loading paths in `kernel.cu`
+
+### Modifying 3D Objects
+
+Edit the vertex and face definitions in `gpu_cuda/kernel.cu`:
+
+```cpp
+const Face h_CUBE_FACES[6] = {
+    // Define your 3D object faces here
+};
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test with `install.bat`
+5. Submit a pull request
+
+## License
+
+This project is open source. See LICENSE file for details.
+
+## Acknowledgments
+
+- NVIDIA CUDA for GPU computing framework
+- Windows Console ANSI support for colored terminal output
+- ASCII art rendering techniques and optimization strategies
